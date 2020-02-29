@@ -1,19 +1,27 @@
 package main
 
 import (
-	"fmt"
+	"chat_group/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
-func createHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Create chat group")
-}
-
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/chat-group", createHandler).Methods("POST")
-	http.Handle("/", r)
-	http.ListenAndServe(":666", nil)
 
+	g := r.PathPrefix("/chat/group").Subrouter()
+	g.HandleFunc("", handlers.GroupCreateHandler).Methods("POST")
+	g.HandleFunc("/{chat_id}", handlers.GroupInfoHandler).Methods("GET")
+	g.HandleFunc("/{chat_id}", handlers.GroupEditHandler).Methods("PUT")
+	g.HandleFunc("/{chat_id}", handlers.GroupDeleteHandler).Methods("DELETE")
+
+	m := r.PathPrefix("/chat/message").Subrouter()
+	m.HandleFunc("", handlers.MessageCreateHandler).Methods("POST")
+	m.HandleFunc("/{message_id}", handlers.MessageEditHandler).Methods("PUT")
+	m.HandleFunc("/{message_id}", handlers.MessageDeleteHandler).Methods("DELETE")
+
+	http.ListenAndServe(":666", r)
 }
+
+
+
