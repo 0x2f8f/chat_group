@@ -27,8 +27,15 @@ func GroupCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = collection.FindOne(context.TODO(), bson.M{"_id": insertResult.InsertedID}).Decode(&group)
+	if err != nil {
+		response.GetError(err, w, http.StatusNotFound, fmt.Sprintf("failed to create chat"))
+
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(insertResult)
+	json.NewEncoder(w).Encode(group)
 }
 
 func GroupInfoHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,9 +60,46 @@ func GroupInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+	w.Header().Set("Content-Type", "application/json")
+
+	var group models.Group
+	params := mux.Vars(r)
+	id, _ := primitive.ObjectIDFromHex(params["chat_id"])
+
+	collection := mongodb.GetCollection("croups")
+	filter := bson.M{"_id": id}
+	err := collection.FindOne(context.TODO(), filter).Decode(&group)
+
+	if err != nil {
+		response.GetError(err, w, http.StatusNotFound, fmt.Sprintf("Chat not found: %v", params["chat_id"]))
+
+		return
+	}
+
+	_ = json.NewDecoder(r.Body).Decode(&group)
+	update := bson.D{
+		{"$set", bson.D{
+			{"name", group.Name},
+			{"description", group.Description},
+		}},
+	}
+
+	err = collection.FindOneAndUpdate(context.TODO(), filter, update).Decode(&group)
+	if err != nil {
+		response.GetError(err, w, http.StatusNotFound, fmt.Sprintf("Failed to update chat %s", params["chat_id"]))
+
+		return
+	}
+
+	err = collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&group)
+	if err != nil {
+		response.GetError(err, w, http.StatusNotFound, fmt.Sprintf("Failed to update chat %s", params["chat_id"]))
+
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Chat edit: %v\n", vars["chat_id"])
+	json.NewEncoder(w).Encode(group)
 }
 
 func GroupDeleteHandler(w http.ResponseWriter, r *http.Request) {
