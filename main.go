@@ -4,6 +4,7 @@ import (
 	"chat_group/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
+	"fmt"
 )
 
 func main() {
@@ -20,8 +21,6 @@ func main() {
 	m.HandleFunc("/{message_id}", handlers.MessageEditHandler).Methods("PUT")
 	m.HandleFunc("/{message_id}", handlers.MessageDeleteHandler).Methods("DELETE")
 
-	http.ListenAndServe(":666", r)
+	http.ListenAndServe(":667", r)
+	fmt.Println("Start Chat App on 667 port")
 }
-
-
-
