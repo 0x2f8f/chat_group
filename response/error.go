@@ -6,11 +6,6 @@ import (
 	"encoding/json"
 )
 
-type ErrorResponse struct {
-	StatusCode   int    `json:"status"`
-	ErrorMessage string `json:"message"`
-}
-
 func GetError(err error, w http.ResponseWriter, statusCode int, errorResponseMessage string) {
 	log.Println(errorResponseMessage)
 	log.Println(err.Error())
