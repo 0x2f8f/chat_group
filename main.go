@@ -4,7 +4,7 @@ import (
 	"chat_group/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
-	"fmt"
+	"log"
 )
 
 func main() {
@@ -21,6 +21,10 @@ func main() {
 	m.HandleFunc("/{message_id}", handlers.MessageEditHandler).Methods("PUT")
 	m.HandleFunc("/{message_id}", handlers.MessageDeleteHandler).Methods("DELETE")
 
-	http.ListenAndServe(":667", r)
-	fmt.Println("Start Chat App on 667 port")
+	a := r.PathPrefix("/auth").Subrouter()
+	a.HandleFunc("/phone", handlers.AuthPhoneHandler).Methods("POST")
+	a.HandleFunc("/confirm", handlers.AuthConfirmHandler).Methods("POST")
+
+	http.ListenAndServe(":678", r)
+	log.Println("Start Chat App on 678 port")
 }
